@@ -1,0 +1,66 @@
+#!/bin/sh
+
+#set -x
+ant_ip=
+ant_ghs=
+ant_temp=
+ant_blocks=
+
+if [ -z  "`lsmod | grep bitmain_lcd`"  ]; then
+	echo "No bitmain-lcd"
+	insmod /lib/modules/`uname -r`/kernel/drivers/bitmain/bitmain_lcd.ko
+else
+	echo "Have bitmain-lcd"
+	rmmod bitmain_lcd.ko
+	sleep 1
+	insmod /lib/modules/`uname -r`/kernel/drivers/bitmain/bitmain_lcd.ko
+fi
+
+while true; do
+    ant_tmp=`ifconfig | grep "inet addr"`
+    i=0
+    for ant_var in ${ant_tmp}
+    do
+    	case ${i} in
+    		1 )
+    		ant_ip=${ant_var}
+    		ant_ip=${ant_ip/addr:/}
+    		;;
+    	esac
+    	i=`expr $i + 1`
+    done
+    
+    ant_tmp=`cgminer-api -o lcd | tr '|' ','`
+    
+    if [ "${ant_tmp}" == "Socket connect failed: Connection refused" ]; then
+    	ant_ghs=0
+    	ant_temp=0
+    	ant_blocks=
+    else
+	old="`echo "$ant_tmp" | grep 'GHS='`"
+	if [ -z "$old" ] ; then
+		ant_ghs=${ant_tmp#*GHS av=}
+		ant_ghs=${ant_ghs%%,*}
+    	
+		ant_temp=${ant_tmp#*Temperature=}
+		ant_temp=${ant_temp%%,*}
+    	
+		ant_blocks=${ant_tmp#*Found Blocks=}
+		ant_blocks="B:${ant_blocks%%,*} "
+	else
+		ant_ghs=${ant_tmp#*GHS=}
+		ant_ghs=${ant_ghs%%,*}
+    	
+		ant_temp=${ant_tmp#*temp=}
+		ant_temp=${ant_temp%%,*}
+	fi
+    fi
+
+    echo "AntMiner S2/K" >  /tmp/lcd.data
+    echo "${ant_ip}" >> /tmp/lcd.data
+    echo "${ant_ghs} GH/s" >> /tmp/lcd.data
+    echo "${ant_blocks}Max ${ant_temp}" >> /tmp/lcd.data
+
+    sleep 10s
+done
+

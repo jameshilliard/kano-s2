@@ -1,0 +1,23 @@
+{
+  "pools": [
+    {
+      "url": "stratum.btcguild.com:3333",
+      "user": "juros_kant",
+      "pass": "kant"
+    },
+    {
+      "url": "stratum.ozco.in:3333",
+      "user": "nezumikun.kant",
+      "pass": "kant"
+    },
+    {
+      "url": "167.160.36.2:80",
+      "user": "nezumikun.kant",
+      "pass": "kant"
+    }
+  ],
+  "api-listen": true,
+  "api-allow": "W:127.0.0.1,R:0/0",
+  "bitmainbeeper" : true,
+  "bitmaintempoverctrl" : true
+}
